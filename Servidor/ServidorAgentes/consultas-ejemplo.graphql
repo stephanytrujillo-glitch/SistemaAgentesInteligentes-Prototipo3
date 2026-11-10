@@ -1,0 +1,80 @@
+# Pegar en http://localhost:8081/graphiql  (los parametros van como VARIABLES)
+
+# ---------- Listar maestro + 2 datos del detalle (consulta personalizada con $lookup)
+query ListarAgentes($estado: EstadoOperativo, $pagina: Int, $tamano: Int) {
+  agentesInteligentesResumen(estado: $estado, pagina: $pagina, tamano: $tamano) {
+    elementos {
+      idAgente nombre nivelAutonomia estadoOperativo nivelConfianza
+      fechaRegistro aprendizajeContinuo descripcion
+      cantidadNavegaciones precisionPromedio
+    }
+    total pagina tamano totalPaginas
+  }
+}
+# Variables: { "estado": "ACTIVO", "pagina": 0, "tamano": 25 }   o   { "estado": null } para todos
+
+# ---------- Listar detalle + 2 atributos del maestro, filtro por destino
+query ListarNavegaciones($destino: String, $pagina: Int, $tamano: Int) {
+  navegacionesConAgente(destino: $destino, pagina: $pagina, tamano: $tamano) {
+    elementos {
+      idNavegacion nombre origen destino precisionGPS velocidadMaxima
+      fechaUltimaCalibracion rutaOptimizada idAgenteInteligente
+      nombreAgente estadoAgente
+    }
+    total totalPaginas
+  }
+}
+# Variables: { "destino": "bogo", "pagina": 0, "tamano": 25 }   o   { "destino": "" } para todos
+
+# ---------- Listar detalle filtrando por agente inteligente
+query NavegacionesDeUnAgente($idAgente: Int!) {
+  navegacionesPorAgente(idAgente: $idAgente, pagina: 0, tamano: 10) {
+    elementos { idNavegacion nombre destino nombreAgente estadoAgente }
+    total
+  }
+}
+
+# ---------- Opciones para escoger un agente (maximo 20, por nombre o ID)
+query Opciones($texto: String) {
+  agentesInteligentesOpciones(texto: $texto, limite: 20) { idAgente nombre }
+}
+
+# ---------- Consulta con dos parametros
+query PorEstadoYAutonomia($estado: EstadoOperativo!, $min: Float!) {
+  agentesPorEstadoYAutonomia(estado: $estado, autonomiaMinima: $min, pagina: 0, tamano: 25) {
+    elementos { idAgente nombre nivelAutonomia }
+    total
+  }
+}
+
+# ---------- Consultar UN solo objeto por un parametro
+query AgentePorNombre($nombre: String!) {
+  agenteInteligentePorNombre(nombre: $nombre) { idAgente nombre estadoOperativo fechaRegistro }
+}
+
+# ---------- Crear
+mutation CrearAgente($input: AgenteInteligenteInput!) {
+  crearAgenteInteligente(input: $input) { idAgente nombre }
+}
+# Variables:
+# { "input": { "idAgente": 4, "nombre": "Delta", "nivelAutonomia": 70.5,
+#   "estadoOperativo": "ACTIVO", "nivelConfianza": null,
+#   "fechaRegistro": "2026-11-01T10:00:00", "aprendizajeContinuo": true, "descripcion": null } }
+
+mutation CrearNavegacion($input: AgenteNavegacionInput!) {
+  crearAgenteNavegacion(input: $input) { idNavegacion nombre idAgenteInteligente }
+}
+# Variables:
+# { "input": { "idNavegacion": 105, "nombre": "Nav Oriente", "origen": "Ibague", "destino": "Villavicencio",
+#   "precisionGPS": 93.1, "velocidadMaxima": 60, "fechaUltimaCalibracion": "2026-10-20T08:00:00",
+#   "rutaOptimizada": true, "idAgenteInteligente": 4 } }
+
+# ---------- Actualizar (la llave va aparte y no se modifica)
+mutation ActualizarAgente($id: Int!, $input: ActualizarAgenteInteligenteInput!) {
+  actualizarAgenteInteligente(idAgente: $id, input: $input) { idAgente nombre nivelAutonomia }
+}
+
+# ---------- Eliminar
+mutation EliminarAgente($id: Int!) {
+  eliminarAgenteInteligente(idAgente: $id)
+}

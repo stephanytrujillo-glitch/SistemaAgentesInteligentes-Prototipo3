@@ -1,0 +1,11 @@
+# Levanta MongoDB local para el servidor: docker compose up -d
+services:
+  mongodb:
+    image: mongo:7
+    container_name: mongo-agentes
+    ports:
+      - "27017:27017"
+    volumes:
+      - datos-mongo:/data/db
+volumes:
+  datos-mongo:

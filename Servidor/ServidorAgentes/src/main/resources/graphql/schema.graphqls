@@ -1,0 +1,166 @@
+# ==================================================================
+#  Sistema de Agentes Inteligentes - Tercer prototipo 2026B
+#  Maestro: AgenteInteligente  (coleccion agentes_inteligentes)
+#  Detalle: AgenteNavegacion   (coleccion agentes_navegacion)
+# ==================================================================
+
+scalar DateTime
+
+enum EstadoOperativo {
+    ACTIVO
+    INACTIVO
+    MANTENIMIENTO
+}
+
+type AgenteInteligente {
+    idAgente: Int!
+    nombre: String!
+    nivelAutonomia: Float!
+    estadoOperativo: EstadoOperativo!
+    nivelConfianza: Float
+    fechaRegistro: DateTime!
+    aprendizajeContinuo: Boolean!
+    descripcion: String
+}
+
+"Maestro + 2 datos calculados del detalle"
+type AgenteResumen {
+    idAgente: Int!
+    nombre: String!
+    nivelAutonomia: Float!
+    estadoOperativo: EstadoOperativo!
+    nivelConfianza: Float
+    fechaRegistro: DateTime!
+    aprendizajeContinuo: Boolean!
+    descripcion: String
+    cantidadNavegaciones: Int!
+    precisionPromedio: Float!
+}
+
+type AgenteNavegacion {
+    idNavegacion: Int!
+    nombre: String!
+    origen: String!
+    destino: String!
+    precisionGPS: Float!
+    velocidadMaxima: Float
+    fechaUltimaCalibracion: DateTime!
+    rutaOptimizada: Boolean!
+    idAgenteInteligente: Int
+}
+
+"Detalle + 2 atributos del maestro (nombre y estado del agente inteligente)"
+type NavegacionConAgente {
+    idNavegacion: Int!
+    nombre: String!
+    origen: String!
+    destino: String!
+    precisionGPS: Float!
+    velocidadMaxima: Float
+    fechaUltimaCalibracion: DateTime!
+    rutaOptimizada: Boolean!
+    idAgenteInteligente: Int
+    nombreAgente: String
+    estadoAgente: EstadoOperativo
+}
+
+"Una pagina de resultados del listado de agentes inteligentes"
+type PaginaAgenteResumen {
+    elementos: [AgenteResumen!]!
+    total: Int!
+    pagina: Int!
+    tamano: Int!
+    totalPaginas: Int!
+}
+
+type PaginaAgenteInteligente {
+    elementos: [AgenteInteligente!]!
+    total: Int!
+    pagina: Int!
+    tamano: Int!
+    totalPaginas: Int!
+}
+
+"Una pagina de resultados del listado de agentes de navegacion"
+type PaginaNavegacionConAgente {
+    elementos: [NavegacionConAgente!]!
+    total: Int!
+    pagina: Int!
+    tamano: Int!
+    totalPaginas: Int!
+}
+
+input AgenteInteligenteInput {
+    idAgente: Int!
+    nombre: String!
+    nivelAutonomia: Float!
+    estadoOperativo: EstadoOperativo!
+    nivelConfianza: Float
+    fechaRegistro: DateTime!
+    aprendizajeContinuo: Boolean!
+    descripcion: String
+}
+
+input ActualizarAgenteInteligenteInput {
+    nombre: String!
+    nivelAutonomia: Float!
+    estadoOperativo: EstadoOperativo!
+    nivelConfianza: Float
+    fechaRegistro: DateTime!
+    aprendizajeContinuo: Boolean!
+    descripcion: String
+}
+
+input AgenteNavegacionInput {
+    idNavegacion: Int!
+    nombre: String!
+    origen: String!
+    destino: String!
+    precisionGPS: Float!
+    velocidadMaxima: Float
+    fechaUltimaCalibracion: DateTime!
+    rutaOptimizada: Boolean!
+    idAgenteInteligente: Int
+}
+
+input ActualizarAgenteNavegacionInput {
+    nombre: String!
+    origen: String!
+    destino: String!
+    precisionGPS: Float!
+    velocidadMaxima: Float
+    fechaUltimaCalibracion: DateTime!
+    rutaOptimizada: Boolean!
+    idAgenteInteligente: Int
+}
+
+# Los listados son PAGINADOS: pagina empieza en 0, tamano entre 1 y 100 (por defecto 25).
+type Query {
+    # ---------- Agente inteligente (maestro) ----------
+    "Listar paginado con parametro opcional (consulta personalizada con $lookup)"
+    agentesInteligentesResumen(estado: EstadoOperativo, pagina: Int = 0, tamano: Int = 25): PaginaAgenteResumen!
+    "Consulta personalizada con dos parametros, paginada"
+    agentesPorEstadoYAutonomia(estado: EstadoOperativo!, autonomiaMinima: Float!, pagina: Int = 0, tamano: Int = 25): PaginaAgenteInteligente!
+    "Hasta 'limite' agentes cuyo nombre contiene el texto (o cuyo ID es el texto). Para los formularios."
+    agentesInteligentesOpciones(texto: String, limite: Int = 20): [AgenteInteligente!]!
+    agenteInteligentePorId(idAgente: Int!): AgenteInteligente
+    agenteInteligentePorNombre(nombre: String!): AgenteInteligente
+
+    # ---------- Agente de navegacion (detalle) ----------
+    "Listar paginado con parametro destino (vacio = todos). Consulta personalizada con $lookup"
+    navegacionesConAgente(destino: String, pagina: Int = 0, tamano: Int = 25): PaginaNavegacionConAgente!
+    "Listar paginado con parametro agente inteligente. Consulta personalizada con $lookup"
+    navegacionesPorAgente(idAgente: Int!, pagina: Int = 0, tamano: Int = 25): PaginaNavegacionConAgente!
+    agenteNavegacionPorId(idNavegacion: Int!): AgenteNavegacion
+    agenteNavegacionPorNombre(nombre: String!): AgenteNavegacion
+}
+
+type Mutation {
+    crearAgenteInteligente(input: AgenteInteligenteInput!): AgenteInteligente!
+    actualizarAgenteInteligente(idAgente: Int!, input: ActualizarAgenteInteligenteInput!): AgenteInteligente!
+    eliminarAgenteInteligente(idAgente: Int!): String!
+
+    crearAgenteNavegacion(input: AgenteNavegacionInput!): AgenteNavegacion!
+    actualizarAgenteNavegacion(idNavegacion: Int!, input: ActualizarAgenteNavegacionInput!): AgenteNavegacion!
+    eliminarAgenteNavegacion(idNavegacion: Int!): String!
+}
